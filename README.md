@@ -3,17 +3,25 @@ Datamonster is a MapReduce abstraction library for SQL and HBase-oriented applic
 
 # What is it really?
 It's a library to do SQL/HBase-oriented hadoop jobs. It provide an abtraction layer that makes job creation easier than in "pure hadoop"
+It's primary usage is to make pertinence score calculations, but it should find an usage in many other kind of tasks.
 
-# Howto (Examples will be published soon)
-Example for a SQL to SQL job  
-```java
-Datamonster sqlmonster = new Datamonster("SQLMonster");
-sqlmonster.setSQLCredentials("URL", "USER", "PASS");
-sqlmonster.setWritables(IntWritable.class, DBInputWritable.class, DBOutputWritable.class);
-sqlmonster.mapperConfiguration("YOUR SQL QUERY", Map.class);
-// outputTable -> String // outputFields and conditionalFields -> String[]
-sqlmonster.reducerConfiguration("UPDATE", outputTable, outputFields, conditionalFields, Reduce.class);
-System.exit(ToolRunner.run(job, args));
-```
+# Exemples
+Some examples are (or will be) available in the examples folder:
+* SqlToSql -> fetch data from a SQL (MariaDB/MySQL) database and write it in the same database
 
-A more complete documentation will come soon, i'm still writing it, there's javadoc comments in the source, though.  
+# Libraries
+When building my jobs using Datamonster, i use these libraries
+* datamonster (obviously)
+* hadoop-annotations
+* hadoop-common
+* hadoop-mapreduce-client-core
+* hbase-client
+* hbase-common
+* hbase-hadoop2-compat
+* hbase-protocol
+* hbase-server
+* high-scale-lib
+* htrace-core
+
+
+A more complete documentation will come soon, i'm still writing it, there's javadoc comments in the source, though.
