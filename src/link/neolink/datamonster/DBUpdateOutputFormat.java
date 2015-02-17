@@ -148,7 +148,8 @@ public class DBUpdateOutputFormat<K extends DBWritable, V> extends OutputFormat<
       {
          Integer limit = fieldNames.length;
          Integer i = 0;
-         String query = "UPDATE " + table + " SET ";
+         //String query = "UPDATE " + table + " SET ";
+         String query = "INSERT INTO " + table + " (";
 
          // If we have both fields and conditional fields, set the limit at the "/"
          for (i = 0; i < fieldNames.length; i++)
@@ -157,16 +158,36 @@ public class DBUpdateOutputFormat<K extends DBWritable, V> extends OutputFormat<
                limit = i;
          }
 
-         // Build the query
+         // Build the query, columns part
          i = 0;
          for (String field : fieldNames)
          {
             if (i < limit-1)
-               query += fieldNames[i] + " = ?, ";
+               query += field + ", ";
+            else if (i == limit-1)
+               query += field + ") VALUES (";
+            i++;
+         }
+
+         // Build the query, VALUES part
+         for (i = 0; i < limit; i++)
+         {
+            if (i < limit-1)
+               query += "?,";
+            else // if (i == limit-1), but no need to add it here
+               query += "?) ON DUPlICATE KEY UPDATE ";
+         }
+
+         // Build the query, UPDATE part
+         i = 0;
+         for (String field : fieldNames)
+         {
+            if (i < limit-1)
+               query += field + " = ?, ";
             else if (limit != fieldNames.length && i > limit && i < fieldNames.length-1)
-               query += fieldNames[i] + " = ? AND ";
+               query += field + " = ? AND ";
             else if (i == limit-1 || (limit != fieldNames.length && i == fieldNames.length-1))
-               query += fieldNames[i] + " = ? ";
+               query += field + " = ? ";
             else if (limit != fieldNames.length && i.equals(limit))
                query += "WHERE ";
             i++;

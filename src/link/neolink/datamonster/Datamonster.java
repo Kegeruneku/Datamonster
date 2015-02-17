@@ -159,7 +159,7 @@ public class Datamonster extends Configured implements Tool
    /**
     * Get the job configuration
     */
-   public Configuration getConf()
+   public Configuration getJobConf()
    {
       return this.job.getConfiguration();
    }
@@ -266,6 +266,13 @@ public class Datamonster extends Configured implements Tool
          System.err.println("Input type already defined.");
          System.exit(-1);
       }
+
+      if (this.dataWritable == null)
+      {
+         System.err.println("No DataWritable(s) found, you need to call setDataWritable() before!.");
+         System.exit(-1);
+      }
+
       this.inType = Type.SELECT;
       this.job.setMapperClass(mapper);
       this.job.setMapOutputKeyClass(Text.class);
@@ -302,6 +309,12 @@ public class Datamonster extends Configured implements Tool
       if (this.inType != Type.MAGIC)
       {
          System.err.println("Input type already defined");
+         System.exit(-1);
+      }
+
+      if (this.dataWritable == null)
+      {
+         System.err.println("No DataWritable(s) found, you need to call setDataWritable() before!.");
          System.exit(-1);
       }
 
@@ -454,6 +467,13 @@ public class Datamonster extends Configured implements Tool
          System.err.println("Input and/or output type not defined");
          return -1;
       }
+
+      if (inType != Type.HBASE && outType != Type.HBASE && this.sqlURL == null)
+      {
+         System.err.println("No SQL information provided.");
+         System.exit(-1);
+      }
+
 
       // If you have both input and output as SQL, and only configured ioWritable, you gonna have a bad time.
       if (inType != Type.HBASE && outType != Type.HBASE && (this.inputWritable == null || this.outputWritable == null))
