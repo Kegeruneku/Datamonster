@@ -1,7 +1,6 @@
 package link.neolink.datamonster;
 
 /**
- *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,6 +17,11 @@ package link.neolink.datamonster;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+// Java SQL Stuff
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 // Hadoop general imports
 import org.apache.hadoop.conf.Configuration;
@@ -92,8 +96,7 @@ public class Datamonster extends Configured implements Tool
    {
       Configuration conf = HBaseConfiguration.create();
 
-      this.setConf(conf);
-      this.job = Job.getInstance(this.getConf(), name);
+      this.job = Job.getInstance(conf, name);
       this.job.setJarByClass(super.getClass());
    }
 
@@ -143,6 +146,41 @@ public class Datamonster extends Configured implements Tool
    {
       this.sqlDriver = driver;
       this.sqlURLType = URLType;
+   }
+
+   /**
+    * Get the job
+    */
+   public Job getJob()
+   {
+      return this.job;
+   }
+
+   /**
+    * Get the job configuration
+    */
+   public Configuration getConf()
+   {
+      return this.job.getConfiguration();
+   }
+
+   /**
+    * Get the SQL Connection object
+    */
+   public Connection getSQLConnection() throws IOException
+   {
+      try
+      {
+         return this.sqlConfig.getConnection();
+      }
+      catch (ClassNotFoundException ex)
+      {
+         throw new IOException(ex.getMessage());
+      }
+      catch (SQLException ex)
+      {
+         throw new IOException(ex.getMessage());
+      }
    }
 
    /**
@@ -214,7 +252,7 @@ public class Datamonster extends Configured implements Tool
    }
 
    /**
-    * Mapper configuration, with a dataset from SQL/*
+    * Mapper configuration, with a dataset from SQL
     *
     * @param query
     *    The SQL Query
@@ -427,12 +465,12 @@ public class Datamonster extends Configured implements Tool
       if (inType != Type.HBASE || outType != Type.HBASE)
       {
          DBConfiguration.configureDB(job.getConfiguration(), this.sqlDriver, this.sqlURL, this.sqlUser, this.sqlPassword);
+         this.sqlConfig = new DBConfiguration(job.getConfiguration());
       }
 
       // Do an armageddon on the output table (if we do a DELINSERT)
       if (this.outType == Type.DELINSERT)
       {
-         this.sqlConfig = new DBConfiguration(job.getConfiguration());
          this.sqlConfig.getConnection().createStatement().executeUpdate("DELETE FROM " + outTable);
       }
 
