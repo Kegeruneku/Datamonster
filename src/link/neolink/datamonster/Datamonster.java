@@ -75,12 +75,9 @@ public class Datamonster extends Configured implements Tool
    private Class<? extends DBWritable> outputWritable = null;
    private Class<? extends DBWritable> ioWritable = null;
 
-   // SQL driver/type and credentials
+   // SQL driver/type and credentials, i should replace this someday...
    private String sqlDriver = "com.mysql.jdbc.Driver";
    private String sqlURLType = "mysql";
-   private String sqlURL = "localhost";
-   private String sqlUser = "root";
-   private String sqlPassword = "";
 
    // SQL-specific configuration
    private String outTable = "";
@@ -101,6 +98,22 @@ public class Datamonster extends Configured implements Tool
    }
 
    /**
+    * Get the job
+    */
+   public Job getJob()
+   {
+      return this.job;
+   }
+
+   /**
+    * Get the job configuration
+    */
+   public Configuration getJobConf()
+   {
+      return this.job.getConfiguration();
+   }
+
+   /**
     * Set the SQL credentials
     *
     * @param URL
@@ -112,9 +125,8 @@ public class Datamonster extends Configured implements Tool
     */
    public void setSQLCredentials(String URL, String user, String password)
    {
-      this.sqlURL = URL;
-      this.sqlUser = user;
-      this.sqlPassword = password;
+      DBConfiguration.configureDB(job.getConfiguration(), this.sqlDriver, URL, user, password);
+      this.sqlConfig = new DBConfiguration(job.getConfiguration());
    }
 
    /**
@@ -131,9 +143,7 @@ public class Datamonster extends Configured implements Tool
     */
    public void setSQLCredentials(String host, String database, String user, String password)
    {
-      this.sqlURL = "jdbc:"+this.sqlURLType+"://"+host+"/"+database;
-      this.sqlUser = user;
-      this.sqlPassword = password;
+      this.setSQLCredentials("jdbc:"+this.sqlURLType+"://"+host+"/"+database, user, password);
    }
 
    /**
@@ -149,19 +159,14 @@ public class Datamonster extends Configured implements Tool
    }
 
    /**
-    * Get the job
+    * configure the JDBC driver
+    *
+    * @param driver
+    *          The SQL Driver, default is com.mysql.jdbc.Driver
     */
-   public Job getJob()
+   public void setSQLDriver(String driver)
    {
-      return this.job;
-   }
-
-   /**
-    * Get the job configuration
-    */
-   public Configuration getJobConf()
-   {
-      return this.job.getConfiguration();
+      this.sqlDriver = driver;
    }
 
    /**
@@ -468,24 +473,16 @@ public class Datamonster extends Configured implements Tool
          return -1;
       }
 
-      if (inType != Type.HBASE && outType != Type.HBASE && this.sqlURL == null)
+      if (inType != Type.HBASE && outType != Type.HBASE && this.sqlConfig == null)
       {
          System.err.println("No SQL information provided.");
          System.exit(-1);
       }
 
-
       // If you have both input and output as SQL, and only configured ioWritable, you gonna have a bad time.
       if (inType != Type.HBASE && outType != Type.HBASE && (this.inputWritable == null || this.outputWritable == null))
       {
          System.out.println("Warning: Both input and output are SQL, but Writables class saren't corretly defined, maybe you only defined one class?");
-      }
-
-      // SQL configuration (if either input or output isn't HBase)
-      if (inType != Type.HBASE || outType != Type.HBASE)
-      {
-         DBConfiguration.configureDB(job.getConfiguration(), this.sqlDriver, this.sqlURL, this.sqlUser, this.sqlPassword);
-         this.sqlConfig = new DBConfiguration(job.getConfiguration());
       }
 
       // Do an armageddon on the output table (if we do a DELINSERT)

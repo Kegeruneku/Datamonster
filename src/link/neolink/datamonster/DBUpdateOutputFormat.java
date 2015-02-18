@@ -148,7 +148,6 @@ public class DBUpdateOutputFormat<K extends DBWritable, V> extends OutputFormat<
       {
          Integer limit = fieldNames.length;
          Integer i = 0;
-         //String query = "UPDATE " + table + " SET ";
          String query = "INSERT INTO " + table + " (";
 
          // If we have both fields and conditional fields, set the limit at the "/"
